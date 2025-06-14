@@ -1,6 +1,8 @@
+import {Link} from 'react-router-dom';
+
 const WeatherCard = ({ name, temp, description, humidity, wind }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 flex justify-between items-center w-full mx-auto">
+    <Link to="/weather" className="bg-white rounded-lg shadow-md p-4 flex justify-between items-center w-full mx-auto">
       <div className="flex items-center space-x-4">
         <img
           src="https://openweathermap.org/img/wn/01d@2x.png"
@@ -17,7 +19,7 @@ const WeatherCard = ({ name, temp, description, humidity, wind }) => {
         <p>💧 Вологість: {humidity}%</p>
         <p>💨 Вітер: {wind} м/с</p>
       </div>
-    </div>
+    </Link>
   );
 };
 
