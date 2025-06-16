@@ -1,11 +1,14 @@
-import {Link} from 'react-router-dom';
+import { Link } from "react-router-dom";
 
-const WeatherCard = ({ name, temp, description, humidity, wind }) => {
+const WeatherCard = ({ name, icon, temp, description, humidity, wind }) => {
   return (
-    <Link to="/weather" className="bg-white rounded-lg shadow-md p-4 flex justify-between items-center w-full mx-auto">
+    <Link
+      to={`/weather/${encodeURIComponent(name)}`}
+      className="bg-white rounded-lg shadow-md p-4 flex justify-between items-center w-full mx-auto"
+    >
       <div className="flex items-center space-x-4">
         <img
-          src="https://openweathermap.org/img/wn/01d@2x.png"
+          src={`https://openweathermap.org/img/wn/${icon}@2x.png`}
           alt={description}
           className="w-16 h-16"
         />

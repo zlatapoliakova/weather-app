@@ -1,27 +1,69 @@
+import { useEffect, useState } from "react";
 import WeatherCard from "./WeatherCard";
-
 import loadSvg from "../resource/img/loading-arrows.svg";
+import useOpenWeatherServices from "../services/OpenWeatherServices";
 
-const allCities = [
-    { id: 1, name: "Київ", temp: 22, description: "ясно", humidity: 60, wind: 5 },
-    { id: 2, name: "Лондон", temp: 15, description: "хмарно", humidity: 70, wind: 6 },
-    { id: 3, name: "Нью-Йорк", temp: 25, description: "сонячно", humidity: 50, wind: 4 },
-    { id: 4, name: "Токіо", temp: 20, description: "дощ", humidity: 85, wind: 3 },
-    { id: 5, name: "Париж", temp: 18, description: "туман", humidity: 65, wind: 5 },
-  ];  
+const cityList = ["Kyiv", "London", "New York", "Tokyo", "Paris"];
+
+const cityNamesUa = {
+  Kyiv: "Київ",
+  London: "Лондон",
+  "New York": "Нью-Йорк",
+  Tokyo: "Токіо",
+  Paris: "Париж",
+};
 
 const WeatherCardList = () => {
+  const [weatherData, setWeatherData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { getCityWeather, clearError } = useOpenWeatherServices();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      clearError();
+
+      try {
+        const results = await Promise.all(
+          cityList.map((city) => getCityWeather(city))
+        );
+        setWeatherData(results);
+      } catch (error) {
+        console.error("Не вдалося отримати дані:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+
+  // eslint-disable-next-line
+  }, []);
+
   return (
     <>
       <div className="flex flex-col space-y-4 p-4 max-w-lg mx-auto">
-        {allCities.map(({ id, ...props }) => (
-          <WeatherCard key={id} {...props} />
-        ))}
+        {loading ? (
+          <div className="text-center text-gray-500">
+            <img src={loadSvg} alt="Loading" className="mx-auto w-10 h-10" />
+            <p>Завантаження даних...</p>
+          </div>
+        ) : (
+          weatherData.map((city) => (
+            <WeatherCard
+              key={city.id}
+              {...city}
+              name={cityNamesUa[city.name] || city.name}
+            />
+          ))
+        )}
       </div>
+
       <div className="flex justify-center mt-6">
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center space-x-2"
           type="button"
+          disabled
         >
           <span>Завантажити ще</span>
           <img src={loadSvg} alt="Load more" className="w-5 h-5" />
