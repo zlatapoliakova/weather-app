@@ -23,25 +23,29 @@ const WeatherDetailsPage = () => {
       setLoading(true);
       setError(null);
       clearError();
-    
+
       try {
         const current = await getCityWeather(city);
-        console.log("Current weather:", current);
-    
-        const weekForecast = await getCityForecast(current.name);
-    
-        setWeather(current);
+
+        if (!current || current.length === 0) {
+          throw new Error("Погода не знайдена");
+        }
+
+        const currentWeather = current[0];
+
+        const weekForecast = await getCityForecast(currentWeather.name);
+
+        setWeather(currentWeather);
         setForecast(weekForecast);
       } catch (e) {
-        setError("Не вдалося завантажити дані");
+        setError("Не вдалося завантажити дані: " + e.message);
       } finally {
         setLoading(false);
       }
-    };    
+    };
 
     fetchData();
-
-      // eslint-disable-next-line
+  // eslint-disable-next-line
   }, [city]);
 
   if (loading) return <div className="text-center text-gray-500">Завантаження...</div>;
@@ -53,7 +57,9 @@ const WeatherDetailsPage = () => {
       <Header />
       <div className="min-h-screen bg-gray-100 py-8 px-4 max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold">{weather.name}, UA</h2>
+          <h2 className="text-3xl font-bold">
+            {weather.name}, {weather.country}
+          </h2>
           <button className="flex items-center bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded transition">
             <img src={favIcon} alt="Star icon" className="w-5 h-5 mr-2" />
             Зберегти

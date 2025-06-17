@@ -1,75 +1,77 @@
-import { useEffect, useState } from "react";
-import WeatherCard from "./WeatherCard";
-import loadSvg from "../resource/img/loading-arrows.svg";
+import { useDeferredValue, useEffect, useState } from "react";
 import useOpenWeatherServices from "../services/OpenWeatherServices";
 
-const cityList = ["Kyiv", "London", "New York", "Tokyo", "Paris"];
+import WeatherCard from "./WeatherCard";
 
-const cityNamesUa = {
-  Kyiv: "Київ",
-  London: "Лондон",
-  "New York": "Нью-Йорк",
-  Tokyo: "Токіо",
-  Paris: "Париж",
-};
+import loadSvg from "../resource/img/loading-arrows.svg";
 
-const WeatherCardList = () => {
+const popularCities = ["Київ", "Львів", "Харків", "Одеса", "Дніпро"];
+
+const WeatherCardList = ({ searchTerm }) => {
+  const deferredSearch = useDeferredValue(searchTerm);
+
   const [weatherData, setWeatherData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const { getCityWeather, clearError } = useOpenWeatherServices();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchWeather = async () => {
       setLoading(true);
+      setError(null);
       clearError();
-
+  
       try {
-        const results = await Promise.all(
-          cityList.map((city) => getCityWeather(city))
-        );
-        setWeatherData(results);
-      } catch (error) {
-        console.error("Не вдалося отримати дані:", error);
+        if (deferredSearch && deferredSearch.trim() !== "") {
+          const data = await getCityWeather(deferredSearch.trim());
+          setWeatherData(data);
+        } else {
+          const results = await Promise.all(
+            popularCities.map(async (city) => {
+              try {
+                const res = await getCityWeather(city);
+                return res[0];
+              } catch {
+                return null;
+              }
+            })
+          );
+          setWeatherData(results.filter(Boolean));
+        }
+      } catch (e) {
+        setWeatherData([]);
+        setError(e.message);
+        console.error("Помилка:", e.message);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchData();
-
-  // eslint-disable-next-line
-  }, []);
+  
+    fetchWeather();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deferredSearch]);
 
   return (
-    <>
-      <div className="flex flex-col space-y-4 p-4 max-w-lg mx-auto">
-        {loading ? (
-          <div className="text-center text-gray-500">
-            <img src={loadSvg} alt="Loading" className="mx-auto w-10 h-10" />
-            <p>Завантаження даних...</p>
-          </div>
-        ) : (
-          weatherData.map((city) => (
-            <WeatherCard
-              key={city.id}
-              {...city}
-              name={cityNamesUa[city.name] || city.name}
-            />
-          ))
-        )}
-      </div>
-
-      <div className="flex justify-center mt-6">
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center space-x-2"
-          type="button"
-          disabled
-        >
-          <span>Завантажити ще</span>
-          <img src={loadSvg} alt="Load more" className="w-5 h-5" />
-        </button>
-      </div>
-    </>
+    <div className="flex flex-col space-y-4 p-4 max-w-lg mx-auto">
+      {loading ? (
+        <div className="text-center text-gray-500">
+          <img src={loadSvg} alt="Loading" className="mx-auto w-10 h-10" />
+          <p>Завантаження даних...</p>
+        </div>
+      ) : error ? (
+        <p className="text-center text-red-600">{error}</p>
+      ) : weatherData.length ? (
+        weatherData.map((city, index) => (
+          <WeatherCard
+            key={city.id || city.name || index}
+            {...city}
+          />
+        ))
+      ) : (
+        <p className="text-center text-gray-600">Місто не знайдено</p>
+      )}
+    </div>
   );
 };
 
