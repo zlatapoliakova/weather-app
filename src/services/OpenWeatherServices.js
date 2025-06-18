@@ -23,6 +23,10 @@ const useOpenWeatherServices = () => {
         wind: data.wind.speed,
         icon: data.weather[0].icon,
         coord: data.coord,
+        pressure: data.main.pressure,
+        clouds: data.clouds.all,
+        sunrise: data.sys.sunrise,
+        sunset: data.sys.sunset,
       };
     },
     [request]
@@ -64,7 +68,6 @@ const useOpenWeatherServices = () => {
       const url = `${BASE_URL}/forecast?lat=${lat}&lon=${lon}&units=metric&lang=uk&appid=${API_KEY}`;
       const forecastData = await request(url);
 
-      // Групування записів по днях
       const groupedByDay = {};
 
       forecastData.list.forEach((item) => {

@@ -1,6 +1,9 @@
-const ForecastCard = ({ day, date, icon, temp, description }) => {
+const ForecastCard = ({ day, date, icon, temp, description, onClick }) => {
   return (
-    <div className="bg-white p-4 rounded shadow text-center hover:shadow-md transition">
+    <div
+      onClick={onClick}
+      className={`bg-white p-4 rounded shadow text-center hover:shadow-md transition cursor-pointer`}
+    >
       <h4 className="font-semibold text-lg">{day}</h4>
       <p className="text-sm text-gray-500 mb-2">{date}</p>
       <img
