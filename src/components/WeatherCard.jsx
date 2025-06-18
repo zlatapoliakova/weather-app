@@ -1,11 +1,16 @@
 import { Link } from "react-router-dom";
 
-const WeatherCard = ({ name, icon, temp, description, humidity, wind }) => {
+const WeatherCard = ({ name, icon, temp, description, humidity, wind, date }) => {
   return (
     <Link
       to={`/weather/${encodeURIComponent(name)}`}
-      className="bg-white rounded-lg shadow-md p-4 flex justify-between items-center w-full mx-auto"
+      className="relative bg-white rounded-lg shadow-md p-4 flex justify-between items-center w-full mx-auto"
     >
+      {/* Дата у правому верхньому куті */}
+      <div className="absolute top-2 right-3 text-xs text-gray-500">
+        {date}
+      </div>
+
       <div className="flex items-center space-x-4">
         <img
           src={`https://openweathermap.org/img/wn/${icon}@2x.png`}
@@ -18,6 +23,7 @@ const WeatherCard = ({ name, icon, temp, description, humidity, wind }) => {
           <p className="capitalize text-gray-500">{description}</p>
         </div>
       </div>
+
       <div className="text-sm text-right text-gray-500 pr-2">
         <p>💧 Вологість: {humidity}%</p>
         <p>💨 Вітер: {wind} м/с</p>

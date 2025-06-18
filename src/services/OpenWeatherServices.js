@@ -32,11 +32,11 @@ const useOpenWeatherServices = () => {
     async (cityName) => {
       const geoUrl = `${GEO_URL}/direct?q=${encodeURIComponent(cityName)}&limit=10&appid=${API_KEY}`;
       const locations = await request(geoUrl);
-  
+
       if (!locations.length) throw new Error("Місто не знайдено");
-  
+
       const limitedLocations = locations.slice(0, 10);
-  
+
       const weatherList = await Promise.all(
         limitedLocations.map(async ({ lat, lon, local_names, name }) => {
           const localName = (local_names && local_names.uk) || name;
@@ -47,11 +47,11 @@ const useOpenWeatherServices = () => {
           }
         })
       );
-  
+
       return weatherList.filter(Boolean);
     },
     [request, getCityWeatherByCoords]
-  );  
+  );
 
   const getCityForecast = useCallback(
     async (cityName) => {
@@ -64,18 +64,38 @@ const useOpenWeatherServices = () => {
       const url = `${BASE_URL}/forecast?lat=${lat}&lon=${lon}&units=metric&lang=uk&appid=${API_KEY}`;
       const forecastData = await request(url);
 
-      const dailyData = forecastData.list
-        .filter((item) => item.dt_txt.includes("12:00:00"))
-        .slice(0, 7);
+      // Групування записів по днях
+      const groupedByDay = {};
 
-      return dailyData.map((dayData) => ({
-        day: new Date(dayData.dt * 1000).toLocaleDateString("uk-UA", {
-          weekday: "long",
-        }),
-        icon: dayData.weather[0].icon,
-        temp: Math.round(dayData.main.temp),
-        description: dayData.weather[0].description,
-      }));
+      forecastData.list.forEach((item) => {
+        const date = new Date(item.dt * 1000).toLocaleDateString("uk-UA");
+        if (!groupedByDay[date]) {
+          groupedByDay[date] = [];
+        }
+        groupedByDay[date].push(item);
+      });
+
+      const dailyData = Object.values(groupedByDay)
+        .slice(0, 7)
+        .map((items) => {
+          const noonItem = items.find((i) => i.dt_txt.includes("12:00:00")) || items[Math.floor(items.length / 2)];
+          return {
+            day: new Date(noonItem.dt * 1000).toLocaleDateString("uk-UA", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            }),
+            date: new Date(noonItem.dt * 1000).toLocaleDateString("uk-UA", {
+              day: "2-digit",
+              month: "long",
+            }),
+            icon: noonItem.weather[0].icon,
+            temp: Math.round(noonItem.main.temp),
+            description: noonItem.weather[0].description,
+          };
+        });
+
+      return dailyData;
     },
     [request]
   );

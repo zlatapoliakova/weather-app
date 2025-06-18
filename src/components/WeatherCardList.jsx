@@ -2,14 +2,12 @@ import { useDeferredValue, useEffect, useState } from "react";
 import useOpenWeatherServices from "../services/OpenWeatherServices";
 
 import WeatherCard from "./WeatherCard";
-
 import loadSvg from "../resource/img/loading-arrows.svg";
 
 const popularCities = ["Київ", "Львів", "Харків", "Одеса", "Дніпро"];
 
 const WeatherCardList = ({ searchTerm }) => {
   const deferredSearch = useDeferredValue(searchTerm);
-
   const [weatherData, setWeatherData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -21,7 +19,7 @@ const WeatherCardList = ({ searchTerm }) => {
       setLoading(true);
       setError(null);
       clearError();
-  
+
       try {
         if (deferredSearch && deferredSearch.trim() !== "") {
           const data = await getCityWeather(deferredSearch.trim());
@@ -47,10 +45,12 @@ const WeatherCardList = ({ searchTerm }) => {
         setLoading(false);
       }
     };
-  
+
     fetchWeather();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deferredSearch]);
+
+  const todayDate = new Date().toLocaleDateString("uk-UA");
 
   return (
     <div className="flex flex-col space-y-4 p-4 max-w-lg mx-auto">
@@ -66,6 +66,7 @@ const WeatherCardList = ({ searchTerm }) => {
           <WeatherCard
             key={city.id || city.name || index}
             {...city}
+            date={todayDate}
           />
         ))
       ) : (
