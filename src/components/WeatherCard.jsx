@@ -6,7 +6,6 @@ const WeatherCard = ({ name, icon, temp, description, humidity, wind, date }) =>
       to={`/weather/${encodeURIComponent(name)}`}
       className="relative bg-white rounded-lg shadow-md p-4 flex justify-between items-center w-full mx-auto"
     >
-      {/* Дата у правому верхньому куті */}
       <div className="absolute top-2 right-3 text-xs text-gray-500">
         {date}
       </div>
@@ -24,9 +23,9 @@ const WeatherCard = ({ name, icon, temp, description, humidity, wind, date }) =>
         </div>
       </div>
 
-      <div className="text-sm text-right text-gray-500 pr-2">
-        <p>💧 Вологість: {humidity}%</p>
-        <p>💨 Вітер: {wind} м/с</p>
+      <div className="text-sm text-left text-gray-500 pr-2">
+        <p>Вологість: {humidity}%</p>
+        <p>Вітер: {wind} м/с</p>
       </div>
     </Link>
   );

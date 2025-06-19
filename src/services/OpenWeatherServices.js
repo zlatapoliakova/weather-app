@@ -6,7 +6,7 @@ const BASE_URL = "https://api.openweathermap.org/data/2.5";
 const GEO_URL = "https://api.openweathermap.org/geo/1.0";
 
 const useOpenWeatherServices = () => {
-  const { request, clearError } = useHttp();
+  const { request, clearError, process, setProcess } = useHttp();
 
   const getCityWeatherByCoords = useCallback(
     async (lat, lon, localName) => {
@@ -103,7 +103,7 @@ const useOpenWeatherServices = () => {
     [request]
   );
 
-  return { getCityWeather, getCityForecast, clearError };
+  return { getCityWeather, getCityForecast, clearError, process, setProcess };
 };
 
 export default useOpenWeatherServices;

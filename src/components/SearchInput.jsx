@@ -1,6 +1,6 @@
 import search from "../resource/img/search.svg";
 
-const SearchInput = ({ value, onChange, placeholder }) => {
+const SearchInput = ({ value, onChange, placeholder, hasError }) => {
   return (
     <div className="flex">
       <input
@@ -8,7 +8,9 @@ const SearchInput = ({ value, onChange, placeholder }) => {
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-64 py-2 px-3 rounded-l border-t border-l border-b border-gray-300 focus:outline-none text-black"
+        className={`w-64 py-2 px-3 rounded-l border-t border-l border-b ${
+          hasError ? "border-red-500" : "border-gray-300"
+        } focus:outline-none text-black`}
       />
       <button
         disabled

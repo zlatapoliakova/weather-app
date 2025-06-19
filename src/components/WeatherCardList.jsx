@@ -1,24 +1,35 @@
-import { useDeferredValue, useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useState, useRef } from "react";
 import useOpenWeatherServices from "../services/OpenWeatherServices";
 
 import WeatherCard from "./WeatherCard";
-import loadSvg from "../resource/img/loading-arrows.svg";
+import setContent from "../utils/setContent";
 
 const popularCities = ["Київ", "Львів", "Харків", "Одеса", "Дніпро"];
 
 const WeatherCardList = ({ searchTerm }) => {
   const deferredSearch = useDeferredValue(searchTerm);
   const [weatherData, setWeatherData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [longLoading, setLongLoading] = useState(false);
+  const { getCityWeather, clearError, process, setProcess } = useOpenWeatherServices();
+  const timerRef = useRef(null);
 
-  const { getCityWeather, clearError } = useOpenWeatherServices();
+  const isValidSearch = deferredSearch.trim() === "" || /^[а-яіїєґА-ЯІЇЄҐ\s-]+$/.test(deferredSearch.trim());
 
   useEffect(() => {
     const fetchWeather = async () => {
-      setLoading(true);
-      setError(null);
       clearError();
+      setLongLoading(false);
+      clearTimeout(timerRef.current);
+
+      if (!isValidSearch) {
+        setWeatherData([]);
+        setProcess("confirmed");
+        return;
+      }
+
+      timerRef.current = setTimeout(() => {
+        setLongLoading(true);
+      }, 5000);
 
       try {
         if (deferredSearch && deferredSearch.trim() !== "") {
@@ -37,41 +48,57 @@ const WeatherCardList = ({ searchTerm }) => {
           );
           setWeatherData(results.filter(Boolean));
         }
+
+        setProcess("confirmed");
       } catch (e) {
         setWeatherData([]);
-        setError(e.message);
-        console.error("Помилка:", e.message);
+        setProcess("error");
       } finally {
-        setLoading(false);
+        clearTimeout(timerRef.current);
+        setLongLoading(false);
       }
     };
 
     fetchWeather();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [deferredSearch]);
 
   const todayDate = new Date().toLocaleDateString("uk-UA");
+  const hasSearch = deferredSearch.trim() !== "";
+
+  const RenderedCards = () => {
+    if (!isValidSearch) {
+      return (
+        <p className="text-center text-yellow-600">
+          Спробуй ввести повну назву міста українською
+        </p>
+      );
+    }
+
+    if (longLoading) {
+      return (
+        <p className="text-center text-yellow-600">
+          Пошук займає більше часу... Спробуйте ввести повну назву міста.
+        </p>
+      );
+    }
+
+    if (!weatherData.length && hasSearch) {
+      return <p className="text-center text-gray-600">Місто не знайдено</p>;
+    }
+
+    return weatherData.map((city, index) => (
+      <WeatherCard
+        key={city.id || city.name || index}
+        {...city}
+        date={todayDate}
+      />
+    ));
+  };
 
   return (
     <div className="flex flex-col space-y-4 p-4 max-w-lg mx-auto">
-      {loading ? (
-        <div className="text-center text-gray-500">
-          <img src={loadSvg} alt="Loading" className="mx-auto w-10 h-10" />
-          <p>Завантаження даних...</p>
-        </div>
-      ) : error ? (
-        <p className="text-center text-red-600">{error}</p>
-      ) : weatherData.length ? (
-        weatherData.map((city, index) => (
-          <WeatherCard
-            key={city.id || city.name || index}
-            {...city}
-            date={todayDate}
-          />
-        ))
-      ) : (
-        <p className="text-center text-gray-600">Місто не знайдено</p>
-      )}
+      {setContent(process, RenderedCards)}
     </div>
   );
 };
